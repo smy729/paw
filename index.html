@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小狗跳跃游戏</title>
+    <title>小狗快跑</title>
     <style>
         body {
             margin: 0;
@@ -181,7 +181,7 @@
 
         window.addEventListener('resize', resizeCanvas);
         document.addEventListener('click', jump);
-        setInterval(createObstacle, 2000);
+        setInterval(createObstacle, 750);
         resizeCanvas(); // 初始调整画布大小
         gameLoop();
     </script>
