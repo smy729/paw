@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小狗快跑</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEFA;
+        }
+        #gameCanvas {
+            background-color: #FFF;
+            position: relative;
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const groundHeight = 5; // 地面的高度
+        const dog = { x: 50, y: canvas.height - groundHeight - 50, width: 50, height: 50, isJumping: false };
+        const obstacles = [];
+        let score = 0;
+        let gameOver = false;
+
+        // 自定义图片
+        const dogImage = new Image();
+        dogImage.src = 'dog.png'; // 替换为小狗图片的URL
+        
+        // 障碍物图片数组
+        const obstacleImages = [
+            'obstacle1.png', // 替换为障碍物图片的URL
+            'obstacle2.png', // 替换为障碍物图片的URL
+            'obstacle3.png', // 替换为障碍物图片的URL
+            'obstacle4.png',// 替换为障碍物图片的URL
+            'obstacle5.png'  // 替换为障碍物图片的URL
+        ];
+
+        // 加载障碍物图片
+        const loadedObstacleImages = obstacleImages.map(src => {
+            const img = new Image();
+            img.src = src;
+            return img;
+        });
+
+        // 游戏结束图片
+        const gameOverImage = new Image();
+        gameOverImage.src = 'gameover.png'; // 替换为游戏结束图片的URL
+
+        // 对话框图片
+        const textImage = new Image();
+        textImage.src = 'text.png'; // 替换为对话框图片的URL
+
+        function drawDog() {
+            ctx.drawImage(dogImage, dog.x, dog.y, dog.width, dog.height);
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obs => {
+                ctx.drawImage(obs.image, obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        function drawGround() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+        }
+
+        function drawMessage() {
+            if (dog.isJumping) {
+                // 绘制对话框图片
+                ctx.drawImage(textImage, dog.x + (dog.width / 2) - 67.5, dog.y - 55, 135, 45); // 调整位置和大小
+            }
+        }
+
+        function jump() {
+            if (!dog.isJumping) {
+                dog.isJumping = true;
+                let jumpHeight = 0;
+                const jumpInterval = setInterval(() => {
+                    if (jumpHeight < 120) {  // 增加跳起高度
+                        dog.y -= 10;  // 提高跳起速度
+                        jumpHeight += 10;
+                    } else {
+                        clearInterval(jumpInterval);
+                        setTimeout(() => {
+                            const fallInterval = setInterval(() => {
+                                if (dog.y < canvas.height - groundHeight - dog.height) {
+                                    dog.y += 10;  // 提高落地速度
+                                } else {
+                                    dog.isJumping = false;
+                                    clearInterval(fallInterval);
+                                    dog.y = canvas.height - groundHeight - dog.height; // 确保小狗回到地面
+                                }
+                            }, 20);
+                        }, 300); // 滞空时间，300毫秒
+                    }
+                }, 20);
+            }
+        }
+
+        function createObstacle() {
+            const obstacleIndex = Math.floor(Math.random() * loadedObstacleImages.length); // 随机选择障碍物图片
+            const obstacle = {
+                x: canvas.width,
+                y: canvas.height - groundHeight - 40, // 确保与地面对齐
+                width: 40,
+                height: 40,
+                image: loadedObstacleImages[obstacleIndex] // 使用随机选择的图片
+            };
+            obstacles.push(obstacle);
+        }
+
+        function updateObstacles() {
+            obstacles.forEach(obs => {
+                obs.x -= 5;
+                if (obs.x + obs.width < 0) {
+                    obstacles.shift();
+                    score++;
+                }
+                if (obs.x < dog.x + dog.width && obs.x + obs.width > dog.x && dog.y + dog.height >= obs.y) {
+                    gameOver = true;
+                }
+            });
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`分数: ${score}`, 10, 20);
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGround(); // 画出地面
+            if (!gameOver) {
+                drawDog();
+                drawObstacles();
+                drawMessage(); // 绘制对话框图片
+                drawScore();
+                updateObstacles();
+                requestAnimationFrame(gameLoop);
+            } else {
+                // 绘制游戏结束图片
+                ctx.drawImage(gameOverImage, canvas.width / 2 - 200, canvas.height / 2 - 150, 400, 300); // 调整大小和位置
+            }
+        }
+
+        document.addEventListener('click', jump);
+        setInterval(createObstacle, 2000);
+        gameLoop();
+    </script>
+</body>
+</html>
