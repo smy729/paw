@@ -3,27 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小狗快跑</title>
+    <title>小狗跳跃游戏</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             background-color: #87CEFA;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* 使画面居中 */
         }
         #gameCanvas {
             background-color: #FFF;
-            position: relative;
-            display: block;
-            margin: 0 auto;
             border: 2px solid #000;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <canvas id="gameCanvas"></canvas>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        let canvasWidth = 800;
+        let canvasHeight = 400;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        
         const groundHeight = 5; // 地面的高度
         const dog = { x: 50, y: canvas.height - groundHeight - 50, width: 50, height: 50, isJumping: false };
         const obstacles = [];
@@ -39,7 +45,7 @@
             'obstacle1.png', // 替换为障碍物图片的URL
             'obstacle2.png', // 替换为障碍物图片的URL
             'obstacle3.png', // 替换为障碍物图片的URL
-            'obstacle4.png',// 替换为障碍物图片的URL
+            'obstacle4.png', // 替换为障碍物图片的URL
             'obstacle5.png'  // 替换为障碍物图片的URL
         ];
 
@@ -57,6 +63,18 @@
         // 对话框图片
         const textImage = new Image();
         textImage.src = 'text.png'; // 替换为对话框图片的URL
+
+        function resizeCanvas() {
+            const aspectRatio = canvasWidth / canvasHeight;
+            const newWidth = Math.min(window.innerWidth, canvasWidth);
+            const newHeight = newWidth / aspectRatio;
+            canvas.width = newWidth;
+            canvas.height = newHeight;
+
+            // 更新小狗的初始位置
+            dog.x = 50;
+            dog.y = canvas.height - groundHeight - dog.height;
+        }
 
         function drawDog() {
             ctx.drawImage(dogImage, dog.x, dog.y, dog.width, dog.height);
@@ -137,6 +155,15 @@
             ctx.fillText(`分数: ${score}`, 10, 20);
         }
 
+        function drawGameOver() {
+            const scale = Math.min(canvas.width / 1600, canvas.height / 800); // 根据画布大小计算缩放比例
+            const imageWidth = gameOverImage.width * scale;
+            const imageHeight = gameOverImage.height * scale;
+            const x = (canvas.width - imageWidth) / 2;
+            const y = (canvas.height - imageHeight) / 2;
+            ctx.drawImage(gameOverImage, x, y, imageWidth, imageHeight); // 绘制游戏结束图片
+        }
+
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawGround(); // 画出地面
@@ -148,13 +175,14 @@
                 updateObstacles();
                 requestAnimationFrame(gameLoop);
             } else {
-                // 绘制游戏结束图片
-                ctx.drawImage(gameOverImage, canvas.width / 2 - 200, canvas.height / 2 - 150, 400, 300); // 调整大小和位置
+                drawGameOver(); // 绘制游戏结束图片
             }
         }
 
+        window.addEventListener('resize', resizeCanvas);
         document.addEventListener('click', jump);
         setInterval(createObstacle, 2000);
+        resizeCanvas(); // 初始调整画布大小
         gameLoop();
     </script>
 </body>
